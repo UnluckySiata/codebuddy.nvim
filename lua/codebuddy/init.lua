@@ -9,6 +9,8 @@ local function __vsp()
 end
 
 local _augroup = vim.api.nvim_create_augroup("codebuddy", { clear = true })
+local _shell = os.getenv("SHELL") or "/bin/bash"
+local _term_pattern = "*" .. _shell .. "*"
 
 local M = {
     _opts = {
@@ -32,16 +34,16 @@ end
 function M.setup(opts)
     opts = opts or M._opts
     M._opts = opts
-    if opts.term.insert then
+        if opts.term.insert then
         vim.api.nvim_create_autocmd({"TermOpen"}, {
-            pattern = {"*"},
+            pattern = {_term_pattern},
             group = _augroup,
             command = "startinsert",
         })
     end
     if not opts.term.num then
         vim.api.nvim_create_autocmd({"TermOpen"}, {
-            pattern = {"*"},
+            pattern = {_term_pattern},
             group = _augroup,
             command = "setlocal nonumber norelativenumber"
         })
@@ -75,6 +77,12 @@ function M.__template_run(__before, _get_args)
             end
             to_execute = string.format("%s%s && %s%s", M._cmd.compile, M._curr_file, M._cmd.run, args)
         end
+    end
+    if not M._opts.term.num then
+        vim.cmd("setlocal nonumber norelativenumber")
+    end
+    if M._opts.term.insert then
+        vim.cmd("startinsert")
     end
     vim.fn.termopen(to_execute, {
         on_exit = function ()
@@ -132,6 +140,12 @@ function M.__template_compile(_silent, _get_args)
         vim.fn.system(to_execute)
     else
         vim.cmd("enew")
+        if not M._opts.term.num then
+            vim.cmd("setlocal nonumber norelativenumber")
+        end
+        if M._opts.term.insert then
+            vim.cmd("startinsert")
+        end
         vim.fn.termopen(to_execute, {
             on_exit = function ()
             end
