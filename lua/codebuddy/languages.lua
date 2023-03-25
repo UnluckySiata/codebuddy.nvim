@@ -59,6 +59,11 @@ function M.setup()
             local c = string.format("%s %s %s ", conf.commands.compile, opts_c, conf.out_dir)
             conf.commands.compile = c
             conf.commands.run = r
+        else
+            if not conf.interpreted then
+                conf.commands.compile = conf.commands.compile .. " "
+            end
+            conf.commands.run = conf.commands.run .. " "
         end
     end
 
