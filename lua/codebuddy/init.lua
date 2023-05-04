@@ -34,7 +34,7 @@ end
 function M.setup(opts)
     opts = opts or M._opts
     M._opts = opts
-        if opts.term.insert then
+    if opts.term.insert then
         vim.api.nvim_create_autocmd({"TermOpen"}, {
             pattern = {_term_pattern},
             group = _augroup,
@@ -164,7 +164,7 @@ vim.api.nvim_create_autocmd({"BufEnter", "BufWinEnter"}, {
     pattern = {"*.*"},
     group = _augroup,
     callback = function(args)
-        local ext = string.match(args.file, "%.(%w+)")
+        local ext = string.match(args.file, "%.(%w+)$")
         local file = vim.fn.expand("%")
         M:__update(_l.ext_match[ext], file)
     end
