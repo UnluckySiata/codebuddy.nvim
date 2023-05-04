@@ -22,6 +22,14 @@ local M = {
             use_build_system = true,
             build_system = "sbt",
         },
+        java = {
+            use_build_system = true,
+            build_system = "gradle",
+        },
+        c  = {
+            use_build_system = true,
+            build_system = "make",
+        },
         rust = {
             use_build_system = true,
             build_system = "cargo",
@@ -34,6 +42,7 @@ local M = {
         rs = "rust",
         lua = "lua",
         scala = "scala",
+        java = "java",
     },
 
     build_systems = {
@@ -41,10 +50,18 @@ local M = {
             compile = "sbt compile",
             run = "sbt run",
         },
+        gradle = {
+            compile = "gradle build",
+            run = "gradle run",
+        },
         cargo = {
             compile = "cargo build",
             run = "cargo run",
-        }
+        },
+        make = {
+            compile = "make build",
+            run = "make run",
+        },
     }
 }
 
