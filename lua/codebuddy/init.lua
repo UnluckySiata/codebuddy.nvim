@@ -1,17 +1,17 @@
-local _l = require("codebuddy.languages")
-local _util = require("codebuddy.util")
-_l.setup()
+local l = require("codebuddy.languages")
+local util = require("codebuddy.util")
+l.setup()
 
-local function __sp()
+local function sp()
     vim.api.nvim_command("sp")
 end
-local function __vsp()
+local function vsp()
     vim.api.nvim_command("vsp")
 end
 
-local _augroup = vim.api.nvim_create_augroup("codebuddy", { clear = true })
-local _shell = os.getenv("SHELL") or "/bin/bash"
-local _term_pattern = "*" .. _shell .. "*"
+local augroup = vim.api.nvim_create_augroup("codebuddy", { clear = true })
+local shell = os.getenv("SHELL") or "/bin/bash"
+local term_pattern = "*" .. shell .. "*"
 
 local M = {
     _opts = {
@@ -27,11 +27,11 @@ function M:__update(lang, file, ext)
     self._curr_file = file
     self._lang = lang
 
-    if not _l.languages[lang] then return end
-    self._cmd = _l.languages[lang].commands
-    self._interpreted = _l.languages[lang].interpreted
-    self._output_dir = _l.languages[lang].out_dir
-    self._use_build_system = _l.languages[lang].use_build_system
+    if not l.languages[lang] then return end
+    self._cmd = l.languages[lang].commands
+    self._interpreted = l.languages[lang].interpreted
+    self._output_dir = l.languages[lang].out_dir
+    self._use_build_system = l.languages[lang].use_build_system
 end
 
 function M.setup(opts)
@@ -39,37 +39,37 @@ function M.setup(opts)
     M._opts = opts
     if opts.term.insert then
         vim.api.nvim_create_autocmd({"TermOpen"}, {
-            pattern = {_term_pattern},
-            group = _augroup,
+            pattern = {term_pattern},
+            group = augroup,
             command = "startinsert",
         })
     end
     if not opts.term.num then
         vim.api.nvim_create_autocmd({"TermOpen"}, {
-            pattern = {_term_pattern},
-            group = _augroup,
+            pattern = {term_pattern},
+            group = augroup,
             command = "setlocal nonumber norelativenumber"
         })
     end
 end
 
-function M.__template_run(__before, _get_args)
+local function template_run(before, get_args)
     if not M._cmd then
-        _util.log("missing", M._ext)
+        util.log("missing", M._ext)
         return
     end
 
     if not M._cmd.run then
-        _util.log("no_run", M._ext)
+        util.log("no_run", M._ext)
         return
     end
 
-    if __before then
-        __before()
+    if before then
+        before()
     end
 
     local args = ""
-    if _get_args then
+    if get_args then
         args = " " .. vim.fn.input("args: ")
     end
 
@@ -104,42 +104,42 @@ function M.__template_run(__before, _get_args)
 end
 
 function M.run()
-    M.__template_run(nil, false)
+    template_run(nil, false)
 end
 
 function M.run_args()
-    M.__template_run(nil, true)
+    template_run(nil, true)
 end
 
 function M.run_vsplit()
-    M.__template_run(__vsp, false)
+    template_run(vsp, false)
 end
 
 function M.run_vsplit_args()
-    M.__template_run(__vsp, true)
+    template_run(vsp, true)
 end
 
 function M.run_split()
-    M.__template_run(__sp, false)
+    template_run(sp, false)
 end
 
 function M.run_split_args()
-    M.__template_run(__sp, true)
+    template_run(sp, true)
 end
 
-function M.__template_compile(_silent, _get_args)
+local function template_compile(silent, get_args)
     if not M._cmd then
-        _util.log("missing", M._ext)
+        util.log("missing", M._ext)
         return
     end
 
     if not M._cmd.compile then
-        _util.log("no_comp", M._ext)
+        util.log("no_comp", M._ext)
         return
     end
 
     local args = ""
-    if _get_args then
+    if get_args then
         args = " " .. vim.fn.input("args: ")
     end
     local to_execute
@@ -155,7 +155,7 @@ function M.__template_compile(_silent, _get_args)
         to_execute = M._cmd.compile .. M._curr_file
     end
 
-    if _silent then
+    if silent then
         vim.fn.system(to_execute)
     else
         vim.cmd("enew")
@@ -175,17 +175,17 @@ end
 function M.compile(silent, get_args)
     silent = silent or false
     get_args = get_args or false
-    M.__template_compile(silent, get_args)
+    template_compile(silent, get_args)
 end
 
 
 vim.api.nvim_create_autocmd({"BufEnter", "BufWinEnter"}, {
     pattern = {"*.*"},
-    group = _augroup,
+    group = augroup,
     callback = function(args)
         local ext = string.match(args.file, "%.(%w+)$")
         local file = vim.fn.expand("%")
-        M:__update(_l.ext_match[ext], file, ext)
+        M:__update(l.ext_match[ext], file, ext)
     end
 })
 
