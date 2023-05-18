@@ -16,9 +16,9 @@ local log = {
     },
 }
 
-function M.log(type, ft)
+function M.notify(type, ft)
     local message = string.format(log.messages[type], ft)
-    vim.notify(message, log.importance[type])
+    vim.notify(message, log.importance[type], { title = "codebuddy.nvim" })
 end
 
 return M

@@ -55,12 +55,12 @@ end
 
 local function template_run(before, get_args)
     if not M._cmd then
-        util.log("missing", M._ext)
+        util.notify("missing", M._ext)
         return
     end
 
     if not M._cmd.run then
-        util.log("no_run", M._ext)
+        util.notify("no_run", M._ext)
         return
     end
 
@@ -129,12 +129,12 @@ end
 
 local function template_compile(silent, get_args)
     if not M._cmd then
-        util.log("missing", M._ext)
+        util.notify("missing", M._ext)
         return
     end
 
     if not M._cmd.compile then
-        util.log("no_comp", M._ext)
+        util.notify("no_comp", M._ext)
         return
     end
 
