@@ -1,4 +1,5 @@
 local _l = require("codebuddy.languages")
+local _util = require("codebuddy.util")
 _l.setup()
 
 local function __sp()
@@ -21,10 +22,12 @@ local M = {
     },
 }
 
-function M:__update(lang, file)
-    if not _l.languages[lang] then return end
-    self._lang = lang
+function M:__update(lang, file, ext)
+    self._ext = ext
     self._curr_file = file
+    self._lang = lang
+
+    if not _l.languages[lang] then return end
     self._cmd = _l.languages[lang].commands
     self._interpreted = _l.languages[lang].interpreted
     self._output_dir = _l.languages[lang].out_dir
@@ -51,6 +54,16 @@ function M.setup(opts)
 end
 
 function M.__template_run(__before, _get_args)
+    if not M._cmd then
+        _util.log("missing", M._ext)
+        return
+    end
+
+    if not M._cmd.run then
+        _util.log("no_run", M._ext)
+        return
+    end
+
     if __before then
         __before()
     end
@@ -115,10 +128,16 @@ function M.run_split_args()
 end
 
 function M.__template_compile(_silent, _get_args)
-    if not M._cmd.compile then
-        print("No compilation method specified")
+    if not M._cmd then
+        _util.log("missing", M._ext)
         return
     end
+
+    if not M._cmd.compile then
+        _util.log("no_comp", M._ext)
+        return
+    end
+
     local args = ""
     if _get_args then
         args = " " .. vim.fn.input("args: ")
@@ -166,7 +185,7 @@ vim.api.nvim_create_autocmd({"BufEnter", "BufWinEnter"}, {
     callback = function(args)
         local ext = string.match(args.file, "%.(%w+)$")
         local file = vim.fn.expand("%")
-        M:__update(_l.ext_match[ext], file)
+        M:__update(_l.ext_match[ext], file, ext)
     end
 })
 
