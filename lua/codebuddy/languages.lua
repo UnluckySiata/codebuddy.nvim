@@ -1,5 +1,5 @@
 local M = {
-    languages = {
+    commands = {
         cpp = {
             build = "clang++ -o {file} -std=c++20 {file}.{ext}",
             run = "./{file}"

@@ -27,7 +27,7 @@ function M:__update(lang, file, ext)
     self._lang = lang
     self._filename = string.match(file, "(%w+)." .. ext .. "$")
 
-    local cfg = l.languages[lang]
+    local cfg = l.commands[l.ext_match[lang]]
 
     if not cfg then return end
     local prepared
@@ -44,8 +44,29 @@ function M:__update(lang, file, ext)
 end
 
 function M.setup(opts)
-    opts = opts or M._opts
-    M._opts = opts
+    opts = opts or {}
+
+    if opts.commands then
+        for k, v in pairs(opts.commands) do
+            l["commands"][k] = v
+        end
+
+        opts.commands = nil
+    end
+
+    if opts.ext_match then
+        for k, v in pairs(opts.ext_match) do
+            l["ext_match"][k] = v
+        end
+
+        opts.commands = nil
+    end
+
+    for k, v in pairs(opts) do
+        M._opts[k] = v
+    end
+    opts = M._opts
+
     if opts.term.insert then
         vim.api.nvim_create_autocmd({ "TermOpen" }, {
             pattern = { term_pattern },
