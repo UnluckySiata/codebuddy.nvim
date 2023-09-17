@@ -27,7 +27,7 @@ function M:__update(lang, file, ext)
     self._lang = lang
     self._filename = string.match(file, "(%w+)." .. ext .. "$")
 
-    local cfg = l.commands[l.ext_match[lang]]
+    local cfg = l.commands[lang]
 
     if not cfg then return end
     local prepared
