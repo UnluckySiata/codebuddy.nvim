@@ -15,12 +15,18 @@ Currently non-existant :( but will come someday in the future.
 The code is simple enough so that you should be able to tell what's going on.
 
 ## Features
+### Already present
 - running and compiling code 
 - multiple variants of bindable functions
 - compile with output or silently
 - execute commands in fullscreen/split/vsplit buffer that exits after it's done 
 - can prompt for additional arguments withing neovim window
-- and more to come :)
+
+### Planned
+- custom unnamed actions for possible extension (testing...)
+- per workspace configuration of actions that would override globals,
+with the ability to specify per filetype, for the whole workspace or
+a mix of both (per filetype spec would take precedence)
 
 ## But why?
 There are already some code runners for neovim, but i wanted to make
@@ -44,7 +50,15 @@ can look like this
 local ok, cb = pcall(require, "codebuddy")
 if not ok then return end
 
-cb.setup()
+cb.setup {
+    commands = {
+        -- example commands for C, using matched filename and extension
+        c = {
+            build = "clang -Wall -g -o {file} {file}.{ext}",
+            run = "./{file}"
+        },
+    }
+}
 
 vim.keymap.set("n", "<leader>rr", cb.run)
 vim.keymap.set("n", "<leader>ra", cb.run_vsplit_args)
