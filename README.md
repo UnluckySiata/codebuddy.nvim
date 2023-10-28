@@ -15,6 +15,7 @@ Currently non-existant :( but will come someday in the future.
 The code is simple enough so that you should be able to tell what's going on.
 
 ## Features
+**Note:** For the latest changes checkout the *dev* branch
 ### Already present
 - running and compiling code 
 - multiple variants of bindable functions
@@ -36,10 +37,13 @@ also a good opportunity for me to learn and experiment with neovim
 plugin creation and it's fun to use something that you've written yourself.
 
 ## Installation
-Currently the version you should install is on the main branch. Get it with
-your favorite package manager. With packer the command is
+Get it with your favorite package manager. Here's how to add the stable
+version using Packer
 ```lua
-use "unluckysiata/codebuddy"
+use {
+    "unluckysiata/codebuddy",
+    branch = "main"
+}
 ```
 ## Configuration
 For the time being there isn't a lot you can customize. In the setup function
