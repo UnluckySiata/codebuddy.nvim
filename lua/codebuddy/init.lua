@@ -25,7 +25,7 @@ function M:__update(lang, file, ext)
     self._ext = ext
     self._curr_file = file
     self._lang = lang
-    self._filename = string.match(file, "([%w_]+)." .. ext .. "$")
+    self._filename = string.match(file, "([%w_-]+)." .. ext .. "$") or ""
 
     local cfg = l.commands[lang]
 
@@ -177,7 +177,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
     pattern = { "*.*" },
     group = augroup,
     callback = function(args)
-        local ext = string.match(args.file, "%.([%w_]+)$")
+        local ext = string.match(args.file, "%.([%w_-]+)$")
         local file = vim.fn.expand("%")
         M:__update(l.ext_match[ext], file, ext)
     end
