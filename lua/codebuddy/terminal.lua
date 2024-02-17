@@ -4,13 +4,15 @@ local width_scale = 0.5
 local lines = vim.o.lines - vim.o.cmdheight
 local columns = vim.o.columns
 
----@class Options
+---@class TerminalOptions
 ---@field relative? "editor" | "win" | "cursor" | "mouse"
 ---@field height_scale? float
 ---@field width_scale? float
 ---@field row? integer
 ---@field col? integer
 ---@field border? "none" | "single" | "double" | "rounded" | "solid" | "shadow"
+---@field start_insert? boolean
+---@field no_number? boolean
 
 local Terminal = {
     opts = {
@@ -20,10 +22,12 @@ local Terminal = {
         row = 0,
         col = 0,
         border = "rounded",
+        start_insert = false,
+        no_number = false,
     }
 }
 
----@param opts? Options
+---@param opts? TerminalOptions
 function Terminal:setup(opts)
     opts = opts or {}
     height_scale = opts.height_scale or height_scale
@@ -39,7 +43,7 @@ function Terminal:setup(opts)
     self.opts.row = row
     self.opts.col = col
 
-    vim.tbl_extend("force", self.opts, opts)
+    self.opts = vim.tbl_extend("force", self.opts, opts)
 end
 
 ---@param cmd string
@@ -48,7 +52,7 @@ function Terminal:execute(cmd)
     local b = vim.api.nvim_create_buf(false, false)
 
     if b == 0 then
-        vim.notify("Failed to create the buffer", vim.log.levels.ERROR, { title = "codebuddy.nvim" })
+        vim.notify("Failed to create terminal buffer", vim.log.levels.ERROR, { title = "codebuddy.nvim" })
     end
 
     local w = vim.api.nvim_open_win(b, true, {
@@ -63,11 +67,20 @@ function Terminal:execute(cmd)
     })
 
     if w == 0 then
-        vim.notify("Failed to create the window", vim.log.levels.ERROR, { title = "codebuddy.nvim" })
+        vim.notify("Failed to create terminal window", vim.log.levels.ERROR, { title = "codebuddy.nvim" })
     end
 
     vim.api.nvim_buf_call(b, function ()
         vim.fn.termopen(cmd)
+
+        if self.opts.no_number then
+            vim.opt_local.number = false
+            vim.opt_local.relativenumber = false
+        end
+
+        if self.opts.start_insert then
+            vim.cmd("startinsert")
+        end
     end)
 end
 
