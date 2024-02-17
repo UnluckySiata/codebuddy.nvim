@@ -4,13 +4,16 @@ local terminal = require("codebuddy.terminal")
 
 local augroup = vim.api.nvim_create_augroup("codebuddy", { clear = true })
 
----@alias Commands table<string, string>[]
+---@alias Commands table<string, string>
 
 ---@class Options
----@field commands Commands
+---@field commands Commands[]
 ---@field term? TerminalOptions
 
 local M = {
+    ---@type Commands[]
+    _cmd_config = {},
+
     ---@type Commands
     _commands = {},
 }
@@ -18,7 +21,7 @@ local M = {
 
 ---@param opts Options
 function M:setup(opts)
-    self._commands = vim.tbl_deep_extend("force", self._commands, opts.commands)
+    self._cmd_config = vim.tbl_deep_extend("force", self._cmd_config, opts.commands)
 
     terminal:setup(opts.term)
 end
@@ -28,13 +31,12 @@ function M:__update(file, ext)
     self._ext = ext
     self._curr_file = file
 
-    local cfg = self._commands[ext]
+    local cfg = self._cmd_config[ext]
 
     -- catch unsupported case
     if cfg == nil then
         -- clear action config
-        self._build = nil
-        self._run = nil
+        self._commands = {}
 
         -- clear fields available for substitution
         self._filename = nil
@@ -51,24 +53,18 @@ function M:__update(file, ext)
 
     local prepared
 
-    if cfg.build then
-        prepared = string.gsub(cfg.build, "{file}", self._filename)
+    for name, cmd in pairs(cfg) do
+        prepared = string.gsub(cmd, "{file}", self._filename)
         prepared = string.gsub(prepared, "{relative_dir}", self._relative_dir)
         prepared = string.gsub(prepared, "{file_path}", self._file_path)
         prepared = string.gsub(prepared, "{ext}", self._ext)
-        self._build = prepared
+        self._commands[name] = prepared
     end
-
-    prepared = string.gsub(cfg.run, "{file}", self._filename)
-    prepared = string.gsub(prepared, "{relative_dir}", self._relative_dir)
-    prepared = string.gsub(prepared, "{file_path}", self._file_path)
-    prepared = string.gsub(prepared, "{ext}", self._ext)
-    self._run = prepared
 end
 
 
 local function template_run(get_args)
-    if not M._run then
+    if not M._commands.run then
         util.notify("no_run", M._ext)
         return
     end
@@ -78,7 +74,7 @@ local function template_run(get_args)
         args = " " .. vim.fn.input("args: ")
     end
 
-    terminal:execute(M._run .. args)
+    terminal:execute(M._commands.run .. args)
 end
 
 function M.run()
@@ -91,7 +87,7 @@ end
 
 
 local function template_build(silent, get_args)
-    if not M._build then
+    if not M._commands.build then
         util.notify("no_comp", M._ext)
         return
     end
@@ -101,7 +97,7 @@ local function template_build(silent, get_args)
         args = " " .. vim.fn.input("args: ")
     end
 
-    local to_execute = M._build .. args
+    local to_execute = M._commands.build .. args
     if silent then
         vim.fn.system(to_execute)
     else
