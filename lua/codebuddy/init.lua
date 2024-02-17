@@ -1,12 +1,7 @@
 local l = require("codebuddy.languages")
 local util = require("codebuddy.util")
+local terminal = require("codebuddy.terminal")
 
-local function sp()
-    vim.api.nvim_command("sp")
-end
-local function vsp()
-    vim.api.nvim_command("vsp")
-end
 
 local augroup = vim.api.nvim_create_augroup("codebuddy", { clear = true })
 local shell = os.getenv("SHELL") or "/bin/bash"
@@ -67,6 +62,7 @@ function M:__update(lang, file, ext)
 end
 
 function M.setup(opts)
+    terminal:setup()
     opts = opts or {}
 
     if opts.commands then
@@ -106,14 +102,10 @@ function M.setup(opts)
     end
 end
 
-local function template_run(before, get_args)
+local function template_run(get_args)
     if not M._run then
         util.notify("no_run", M._ext)
         return
-    end
-
-    if before then
-        before()
     end
 
     local args = ""
@@ -123,41 +115,22 @@ local function template_run(before, get_args)
 
     local to_execute = M._run .. args
 
-    vim.cmd("enew")
     if not M._opts.term.num then
         vim.cmd("setlocal nonumber norelativenumber")
     end
     if M._opts.term.insert then
         vim.cmd("startinsert")
     end
-    vim.fn.termopen(to_execute, {
-        on_exit = function()
-        end
-    })
+
+    terminal:execute(to_execute)
 end
 
 function M.run()
-    template_run(nil, false)
+    template_run(false)
 end
 
 function M.run_args()
-    template_run(nil, true)
-end
-
-function M.run_vsplit()
-    template_run(vsp, false)
-end
-
-function M.run_vsplit_args()
-    template_run(vsp, true)
-end
-
-function M.run_split()
-    template_run(sp, false)
-end
-
-function M.run_split_args()
-    template_run(sp, true)
+    template_run(true)
 end
 
 local function template_build(silent, get_args)
@@ -175,17 +148,14 @@ local function template_build(silent, get_args)
     if silent then
         vim.fn.system(to_execute)
     else
-        vim.cmd("enew")
         if not M._opts.term.num then
             vim.cmd("setlocal nonumber norelativenumber")
         end
         if M._opts.term.insert then
             vim.cmd("startinsert")
         end
-        vim.fn.termopen(to_execute, {
-            on_exit = function()
-            end
-        })
+
+        terminal:execute(to_execute)
     end
 end
 
