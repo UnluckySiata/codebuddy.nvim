@@ -21,11 +21,30 @@ local M = {
     },
 }
 
+
 function M:__update(lang, file, ext)
     self._ext = ext
     self._curr_file = file
     self._lang = lang
+
+    -- catch unsupported case
+    if lang == nil then
+        -- clear action config
+        self._build = nil
+        self._run = nil
+
+        -- clear fields available for substitution
+        self._filename = nil
+        self._relative_dir = nil
+        self._file_path = nil
+        return
+    end
+
     self._filename = string.match(file, "([%w_-]+)." .. ext .. "$") or ""
+    self._relative_dir = string.match(file, "(.-)/[^/]*$") or ""
+
+    -- same as {relative_dir}/{file}.{ext}
+    self._file_path = file
 
     local cfg = l.commands[lang]
 
@@ -34,11 +53,15 @@ function M:__update(lang, file, ext)
 
     if cfg.build then
         prepared = string.gsub(cfg.build, "{file}", self._filename)
+        prepared = string.gsub(prepared, "{relative_dir}", self._relative_dir)
+        prepared = string.gsub(prepared, "{file_path}", self._file_path)
         prepared = string.gsub(prepared, "{ext}", self._ext)
         self._build = prepared
     end
 
     prepared = string.gsub(cfg.run, "{file}", self._filename)
+    prepared = string.gsub(prepared, "{relative_dir}", self._relative_dir)
+    prepared = string.gsub(prepared, "{file_path}", self._file_path)
     prepared = string.gsub(prepared, "{ext}", self._ext)
     self._run = prepared
 end
@@ -174,7 +197,7 @@ end
 
 
 vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
-    pattern = { "*.*" },
+    pattern = { "*" },
     group = augroup,
     callback = function(args)
         local ext = string.match(args.file, "%.([%w_-]+)$")
