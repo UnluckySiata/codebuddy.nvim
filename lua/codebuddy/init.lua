@@ -7,8 +7,19 @@ local augroup = vim.api.nvim_create_augroup("codebuddy", { clear = true })
 ---@alias Commands table<string, string>
 
 ---@class Options
+---@field actions Action[]
 ---@field commands Commands[]
 ---@field term? TerminalOptions
+
+---@class Keybind
+---@field mode string | table<string>
+---@field binding string
+---@field opts? table 
+
+---@class Action
+---@field name string
+---@field ask_for_args? boolean
+---@field keybind? Keybind
 
 local M = {
     ---@type Commands[]
@@ -16,15 +27,10 @@ local M = {
 
     ---@type Commands
     _commands = {},
+
+    ---@type function[]
+    actions = {},
 }
-
-
----@param opts Options
-function M:setup(opts)
-    self._cmd_config = vim.tbl_deep_extend("force", self._cmd_config, opts.commands)
-
-    terminal:setup(opts.term)
-end
 
 
 function M:__update(file, ext)
@@ -63,52 +69,40 @@ function M:__update(file, ext)
 end
 
 
-local function template_run(get_args)
-    if not M._commands.run then
-        util.notify("no_run", M._ext)
-        return
-    end
+---@param actions Action[]
+function M:__generate_actions(actions)
 
-    local args = ""
-    if get_args then
-        args = " " .. vim.fn.input("args: ")
-    end
+    for _, a in pairs(actions) do
+         local f = function ()
+            if M._commands[a.name] == nil then
+                local error = string.format("No \"%s\" action for a .%s file", a.name, self._ext)
 
-    terminal:execute(M._commands.run .. args)
-end
+                vim.notify(error, vim.log.levels.ERROR, { title = "codebuddy.nvim" })
+                return
+            end
 
-function M.run()
-    template_run(false)
-end
+            local args = ""
+            if a.ask_for_args then
+                args = " " .. vim.fn.input("args: ")
+            end
 
-function M.run_args()
-    template_run(true)
-end
+            terminal:execute(self._commands[a.name] .. args)
+        end
 
+        self.actions[a.name] = f
 
-local function template_build(silent, get_args)
-    if not M._commands.build then
-        util.notify("no_comp", M._ext)
-        return
-    end
-
-    local args = ""
-    if get_args then
-        args = " " .. vim.fn.input("args: ")
-    end
-
-    local to_execute = M._commands.build .. args
-    if silent then
-        vim.fn.system(to_execute)
-    else
-        terminal:execute(to_execute)
+        local opts = a.keybind.opts or {}
+        vim.keymap.set(a.keybind.mode, a.keybind.binding, f, opts)
     end
 end
 
-function M.build(silent, get_args)
-    silent = silent or false
-    get_args = get_args or false
-    template_build(silent, get_args)
+
+---@param opts Options
+function M:setup(opts)
+    self._cmd_config = vim.tbl_deep_extend("force", self._cmd_config, opts.commands)
+
+    self:__generate_actions(opts.actions)
+    terminal:setup(opts.term)
 end
 
 
