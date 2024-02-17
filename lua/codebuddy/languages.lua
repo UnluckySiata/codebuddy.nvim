@@ -17,6 +17,7 @@ local M = {
         lua = "lua",
         py = "python",
         rs = "rust",
+        go = "go",
         scala = "scala",
     }
 }
