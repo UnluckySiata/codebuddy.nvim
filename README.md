@@ -21,11 +21,11 @@ to know is here in the readme and in type annotations for
 config options.
 
 ## Features
-**Note:** For the latest changes checkout the *dev* branch
-### Already present
 - defining custom actions with arbitrary names
 - configuring each action per filetype
 - local configuration file overwriting global options for a project
+
+**Note:** For the latest changes checkout the *dev* branch
 
 ## Installation
 Get it with your favorite package manager. Here's how to add the (most) stable
