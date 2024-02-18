@@ -120,11 +120,9 @@ function M:setup(opts)
     })
 
     local error
+    local file = local_config[1]  -- first matching path or nil
 
-    if local_config then
-        -- take first matching path
-        local file = local_config[1]
-
+    if file then
         local cfg = dofile(file)
         if not cfg then
             error = "Reading configuration from" .. file .. " failed - lua module is empty"
