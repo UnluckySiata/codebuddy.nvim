@@ -9,6 +9,7 @@ local augroup = vim.api.nvim_create_augroup("codebuddy", { clear = true })
 ---@class Options
 ---@field actions Action[]
 ---@field commands Commands[]
+---@field local_cfg_file? string
 ---@field term? TerminalOptions
 
 ---@class Keybind
@@ -27,6 +28,9 @@ local M = {
 
     ---@type Commands
     _commands = {},
+
+    ---@type string
+    _local_cfg_file = ".actions.lua",
 
     ---@type function[]
     actions = {},
@@ -73,7 +77,7 @@ end
 function M:__generate_actions(actions)
 
     for _, a in pairs(actions) do
-         local f = function ()
+        local f = function ()
             if M._commands[a.name] == nil then
                 local error = string.format("No \"%s\" action for a .%s file", a.name, self._ext)
 
@@ -102,9 +106,46 @@ end
 ---@param opts Options
 function M:setup(opts)
     self._cmd_config = vim.tbl_deep_extend("force", self._cmd_config, opts.commands)
-
     self:__generate_actions(opts.actions)
     terminal:setup(opts.term)
+
+    if opts.local_cfg_file then
+        self._local_cfg_file = opts.local_cfg_file
+    end
+
+    -- check for a module with local configuration
+    local local_config = vim.fs.find(self._local_cfg_file, {
+        upward = true,
+        stop = vim.loop.os_homedir(),
+    })
+
+    local error
+
+    if local_config then
+        -- take first matching path
+        local file = local_config[1]
+
+        local cfg = dofile(file)
+        if not cfg then
+            error = "Reading configuration from" .. file .. " failed - lua module is empty"
+            vim.notify(error, vim.log.levels.ERROR, { title = "codebuddy.nvim" })
+            return
+        end
+
+        if cfg.commands then
+            self._cmd_config = vim.tbl_deep_extend("force", self._cmd_config, cfg.commands)
+        end
+        if cfg.actions then
+            for i, a in pairs(cfg.actions) do
+                if type(a) ~= "table" or type(a.name) ~= "string" then
+                    error = "Reading configuration from " .. file .. " failed - invalid action on index " .. i
+                    vim.notify(error, vim.log.levels.ERROR, { title = "codebuddy.nvim" })
+                    return
+                end
+            end
+            self:__generate_actions(cfg.actions)
+        end
+    end
 end
 
 
