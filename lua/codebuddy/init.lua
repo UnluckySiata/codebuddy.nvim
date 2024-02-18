@@ -91,8 +91,10 @@ function M:__generate_actions(actions)
 
         self.actions[a.name] = f
 
-        local opts = a.keybind.opts or {}
-        vim.keymap.set(a.keybind.mode, a.keybind.binding, f, opts)
+        if a.keybind then
+            local opts = a.keybind.opts or {}
+            vim.keymap.set(a.keybind.mode, a.keybind.binding, f, opts)
+        end
     end
 end
 
