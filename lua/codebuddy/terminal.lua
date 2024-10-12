@@ -63,7 +63,7 @@ function Terminal:execute(cmd)
         height = opts.height,
         border = opts.border,
         title = "Codebuddy",
-        noautocmd = false,
+        noautocmd = true,
     })
 
     if w == 0 then
