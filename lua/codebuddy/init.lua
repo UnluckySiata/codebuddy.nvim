@@ -1,5 +1,4 @@
 
-local util = require("codebuddy.util")
 local terminal = require("codebuddy.terminal")
 
 local augroup = vim.api.nvim_create_augroup("codebuddy", { clear = true })
@@ -116,7 +115,7 @@ function M:setup(opts)
     -- check for a module with local configuration
     local local_config = vim.fs.find(self._local_cfg_file, {
         upward = true,
-        stop = vim.loop.os_homedir(),
+        stop = vim.fn.expand("~"),
     })
 
     local error

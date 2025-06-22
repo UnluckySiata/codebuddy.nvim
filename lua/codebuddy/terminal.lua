@@ -1,4 +1,3 @@
-
 local height_scale = 0.5
 local width_scale = 0.5
 local lines = vim.o.lines - vim.o.cmdheight
@@ -6,8 +5,8 @@ local columns = vim.o.columns
 
 ---@class TerminalOptions
 ---@field relative? "editor" | "win" | "cursor" | "mouse"
----@field height_scale? float
----@field width_scale? float
+---@field height_scale? number
+---@field width_scale? number
 ---@field row? integer
 ---@field col? integer
 ---@field border? "none" | "single" | "double" | "rounded" | "solid" | "shadow"
@@ -70,8 +69,8 @@ function Terminal:execute(cmd)
         vim.notify("Failed to create terminal window", vim.log.levels.ERROR, { title = "codebuddy.nvim" })
     end
 
-    vim.api.nvim_buf_call(b, function ()
-        vim.fn.termopen(cmd)
+    vim.api.nvim_buf_call(b, function()
+        vim.fn.jobstart(cmd, { term = true })
 
         if self.opts.no_number then
             vim.opt_local.number = false
